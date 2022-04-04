@@ -23,8 +23,11 @@ fs = 256
 print(filenames) 
 
 subjects_per_class = collections.defaultdict(set)
+# data creates a list of [subject, activity, accelerometer data]
 data = []
-df_data = []
+# df_data will hold the restructured data in a single dataframe table
+# to be used with seaborn plotting functions
+df_data = [] 
 for f in filenames:
     subject = f.split('_')[0]
     activity = f.split('_')[1]
@@ -44,7 +47,9 @@ for f in filenames:
 {k: len(v) for k, v in subjects_per_class.items()}
   
 df.head()
-df.shape[0] / fs / 60
+# descriptive stats on duration of each recording
+sp.stats.describe([len(df[2])/60/fs for df in data])
+
 
 #%% compute and plot samples per class
 samples_per_class = collections.defaultdict(int)
@@ -56,6 +61,8 @@ activity, n_samples = list(zip(*samples_per_class.items()))
 plt.figure(figsize=(6, 4))
 plt.bar(range(3), n_samples)
 plt.xticks(range(3), activity);
+plt.title('Number of samples per activity')
+
 
 # Plotting by combining subjects data
 plt.figure(figsize=(6, 4))
@@ -68,12 +75,16 @@ plt.figure(figsize=(6, 4))
 ax = sns.violinplot(x="directions", y="acc", hue="activity",
                     data=df_data.drop(columns=["subject"]),inner='quartile', width=0.8, linewidth=0.5)
 
-# plotting individual subject data ( a little too busy)..
-g = sns.catplot(x='activity', y="acc",
-                hue="subject", col="directions",
-                data=df_data, kind="violin", 
-                height=5, aspect=.8, linewidth=.5);
-g.add_legend()
+# plotting individual subject data ( a little too busy; commented out)..
+# this takes a while
+# g = sns.catplot(x='activity', y="acc",
+#                 hue="subject", col="directions",
+#                 data=df_data, kind="violin", 
+#                 height=5, aspect=.8, linewidth=.5);
+# g = sns.catplot(x='activity', y="acc",
+#                 hue="subject", col="directions",
+#                 data=df_data, kind="box", 
+#                 height=5, aspect=.8, linewidth=.5,whis=np.inf);
 
 
 
@@ -98,8 +109,8 @@ for subject, activity, df in sorted(data, key=lambda x: x[1]):
     plt.pause(2)
     plt.xlim(0,30)
     plt.pause(5)
-    #while not plt.waitforbuttonpress(timeout=1):
-    #    pass
+    while not plt.waitforbuttonpress(timeout=1):
+        pass
 
 
 
