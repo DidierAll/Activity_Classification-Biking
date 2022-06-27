@@ -26,7 +26,7 @@ def LoadWristPPGDataset():
   # This relative path is brittle. Depending on where the IPython kernel's 
   # working directory is, this may be wrong. If you are working offline you
   # should change this to the absolute path of the dataset.
-  data_dir = 'data'
+  data_dir = '../data'
   filenames = [os.path.splitext(f)[0] for f in sorted(os.listdir(data_dir))]
   data = []
   for f in filenames:
@@ -93,7 +93,7 @@ def Featurize(accx, accy, accz, fs):
   corr_xz = sp.stats.pearsonr(accx, accz)[0]
   corr_yz = sp.stats.pearsonr(accy, accz)[0]
 
-  # The total energy of each channel / comparable to stdev
+  # The total energy of each channel
   energy_x = np.sum(np.square(accx - np.mean(accx)))
   energy_y = np.sum(np.square(accy - np.mean(accy)))
   energy_z = np.sum(np.square(accz - np.mean(accz)))
@@ -124,22 +124,11 @@ def Featurize(accx, accy, accz, fs):
   spec_energy_m = np.square(np.abs(fft_m))
 
   # The frequency with the most power between 0.25 and 12 Hz
-  ##########  Correction from Didier ###########
-  # Original formula was wrong:
-      # 1. should use np.abs(fft_x) since fft_x is complex
-      # 2. np.argmax refers to extracted data between 0.25 and 12Hz not all freqs
-  # dom_x = fft_freqs[np.argmax(fft_x[freqs_bw(0.25, 12)])]
-  # dom_y = fft_freqs[np.argmax(fft_y[freqs_bw(0.25, 12)])]
-  # dom_z = fft_freqs[np.argmax(fft_z[freqs_bw(0.25, 12)])]
-  # dom_m = fft_freqs[np.argmax(fft_m[freqs_bw(0.25, 12)])]
+  dom_x = fft_freqs[np.argmax(fft_x[freqs_bw(0.25, 12)])]
+  dom_y = fft_freqs[np.argmax(fft_y[freqs_bw(0.25, 12)])]
+  dom_z = fft_freqs[np.argmax(fft_z[freqs_bw(0.25, 12)])]
+  dom_m = fft_freqs[np.argmax(fft_m[freqs_bw(0.25, 12)])]
 
-  dom_x = fft_freqs[freqs_bw(0.25, 12)][np.argmax(np.abs(fft_x)[freqs_bw(0.25, 12)])]
-  dom_y = fft_freqs[freqs_bw(0.25, 12)][np.argmax(np.abs(fft_y)[freqs_bw(0.25, 12)])]
-  dom_z = fft_freqs[freqs_bw(0.25, 12)][np.argmax(np.abs(fft_z)[freqs_bw(0.25, 12)])]
-  dom_m = fft_freqs[freqs_bw(0.25, 12)][np.argmax(np.abs(fft_m)[freqs_bw(0.25, 12)])]
-  
-  ########### End of Corrections  ################
-  
   # The fraction of energy in various frequency bins for each channel
   energy_01_x = (np.sum(spec_energy_x[freqs_bw(0, 1)]) 
                  / np.sum(spec_energy_x))
@@ -329,7 +318,7 @@ def PlotConfusionMatrix(cm, classes,
     else:
         print('Confusion matrix, without normalization')
 
-    # print(cm)
+    print(cm)
 
     fig = plt.figure(figsize=(8, 5))
     im = plt.imshow(cm, interpolation='nearest', cmap=cmap)
@@ -344,7 +333,7 @@ def PlotConfusionMatrix(cm, classes,
            ylim=(len(classes) - .5, -.5),
            title=title,
            ylabel='True label',
-           xlabel='Predicted label');
+           xlabel='Predicted label')
 
     # Rotate the tick labels and set their alignment.
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
